@@ -50,7 +50,11 @@ cd backend && python3 -m pytest tests/ -v   # 48 tests
 cd frontend && npm run build
 ```
 
-Docs: `docs/PRFAQ.md`, `docs/PRODUCT_SPEC.md`, `docs/API_SPEC.md`, `docs/STRATEGY_SPEC.md`, `docs/BACKTEST_SPEC.md`. Examples: `examples/strategies/`, `examples/sample_backtest_result.json`.
+### Deploy
+
+Deploy the Next.js frontend to Vercel and the FastAPI backend to a long-running host (or Vercel serverless with caveats). See `docs/DEPLOYMENT_vercel.md` for the full step-by-step guide.
+
+Docs: `docs/PRFAQ.md`, `docs/PRODUCT_SPEC.md`, `docs/API_SPEC.md`, `docs/STRATEGY_SPEC.md`, `docs/BACKTEST_SPEC.md`, `docs/DEPLOYMENT_vercel.md`. Examples: `examples/strategies/`, `examples/sample_backtest_result.json`.
 
 ---
 
