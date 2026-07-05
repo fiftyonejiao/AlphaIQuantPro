@@ -208,10 +208,10 @@ async function main() {
   const genBtn = page.getByRole("button", { name: "生成分析" });
   if (await genBtn.isVisible().catch(() => false)) {
     await caption(page, "点击「生成分析」：先输出确定性摘要，再由 DeepSeek 生成解读与改进建议", 2200);
-    await genBtn.click();
-    await page.waitForTimeout(3000);
+    await     genBtn.click();
+    await page.waitForTimeout(13000); // real DeepSeek analysis latency
     await scrollTo(page, 2600);
-    await caption(page, "运行后分析：上方为引擎计算的确定性摘要，下方为 AI 分析（当前为 MOCK 演示输出）", 3200);
+    await caption(page, "运行后分析：上方为引擎计算的确定性摘要，下方为 DeepSeek 生成的 AI 分析（未配置密钥时会明确标注为 MOCK）", 3200);
   }
 
   // 分析页：AI 策略评审 + AI 助手对话
@@ -219,13 +219,13 @@ async function main() {
   await page.waitForTimeout(1200);
   await caption(page, "分析页：选择策略后可请求 AI 策略评审，并可选携带某次回测作为上下文");
   await page.getByRole("button", { name: "请求 AI 评审" }).click();
-  await page.waitForTimeout(2600);
-  await caption(page, "AI 评审结果返回（未配置密钥时明确标注为 MOCK 输出，附带免责声明）");
+  await page.waitForTimeout(14000); // real DeepSeek review latency
+  await caption(page, "AI 评审结果由 DeepSeek 生成并附带免责声明（未配置密钥时会明确标注为 MOCK 输出）", 3000);
   await page
     .getByPlaceholder("询问策略、风险或改进建议...")
     .fill("如何降低这个策略的最大回撤？");
   await page.getByRole("button", { name: "发送" }).click();
-  await page.waitForTimeout(2600);
+  await page.waitForTimeout(14000); // real DeepSeek chat latency
   await caption(page, "AI 策略助手支持多轮对话，回复语言跟随界面语言（当前为简体中文）", 3000);
 
   /* ========== 第 5 章：输入、处理过程和输出结果 ========== */
