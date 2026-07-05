@@ -24,3 +24,6 @@ out/
 .DS_Store
 *.log
 tsconfig.tsbuildinfo
+
+# Demo recordings
+demo/output/

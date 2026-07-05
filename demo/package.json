@@ -1,0 +1,12 @@
+{
+  "name": "alphaquantpro-demo-recorder",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AlphaQuantPro 中文视频演示录制脚本（Playwright）",
+  "scripts": {
+    "record": "node record_demo_zh.js"
+  },
+  "dependencies": {
+    "playwright": "^1.49.1"
+  }
+}
