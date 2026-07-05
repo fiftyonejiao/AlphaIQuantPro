@@ -1,6 +1,62 @@
-# AlphaQuantPro — Complete Project Prompt
+# AlphaQuantPro
 
-> **This README is a complete, self-contained project prompt.** Paste it into your coding agent (Cursor, Codex, etc.) to generate **AlphaQuantPro** — a local-first, auditable AI quant trading / strategy agent workbench. It follows Amazon Working-Backwards spec discipline: customer problem first, tenets, explicit goals and non-goals, phased implementation, and a hard definition of done.
+**AlphaQuantPro** is a local-first, auditable AI quant trading / strategy agent workbench: strategy code → deterministic backtest → paper/simulation run → run analysis → AI strategy review. This repository contains the full runnable MVP (FastAPI backend + Next.js frontend) plus the complete project prompt that generated it (below).
+
+> **Disclaimer:** Not financial advice. Backtests and simulations do not guarantee future performance. AI output may be wrong. This MVP is simulation-only — real-money trading is disabled and marked as future work.
+
+## Quickstart
+
+### Option A — Docker Compose
+
+```bash
+cp .env.example .env   # optionally add QVERIS_API_KEY / DEEPSEEK_API_KEY
+docker compose up --build
+# Frontend: http://localhost:3000  |  API: http://localhost:8000/docs
+```
+
+### Option B — Local dev servers
+
+```bash
+# Backend (Python 3.12+)
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --port 8000
+
+# Frontend (Node 20+), in another terminal
+cd frontend
+npm install
+npm run dev   # http://localhost:3000
+```
+
+Without API keys everything still works: market data falls back to a deterministic, clearly labeled **MOCK DATA** generator, and LLM features return clearly marked **MOCK LLM OUTPUT**. Add keys in `.env` to enable QVeris.ai market data and DeepSeek analysis:
+
+```bash
+QVERIS_API_KEY=...      # financial data gateway (backend only)
+DEEPSEEK_API_KEY=...    # the ONLY supported LLM provider (backend only)
+```
+
+### Usage
+
+1. **Strategies** — create/edit indicator (DataFrame) or script (event-driven) Python strategies; three examples are pre-seeded.
+2. **Backtests** — run deterministic backtests; inspect metrics, equity curve, drawdown, trades, and logs.
+3. **Paper Runs** — start a simulated run (historical replay / mock live), watch signals, orders, fills, and PnL; stop it and generate a post-run analysis.
+4. **Analysis** — request a DeepSeek strategy review or chat with the AI assistant.
+5. **Language** — switch the entire GUI between English and 简体中文 from the top bar (persistent).
+
+### Tests
+
+```bash
+cd backend && python3 -m pytest tests/ -v   # 48 tests
+cd frontend && npm run build
+```
+
+Docs: `docs/PRFAQ.md`, `docs/PRODUCT_SPEC.md`, `docs/API_SPEC.md`, `docs/STRATEGY_SPEC.md`, `docs/BACKTEST_SPEC.md`. Examples: `examples/strategies/`, `examples/sample_backtest_result.json`.
+
+---
+
+# Project Prompt (Original Specification)
+
+> **The remainder of this README is the complete, self-contained project prompt** that this repository was generated from. It follows Amazon Working-Backwards spec discipline: customer problem first, tenets, explicit goals and non-goals, phased implementation, and a hard definition of done.
 
 ---
 
