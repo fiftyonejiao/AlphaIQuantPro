@@ -2,7 +2,12 @@ import pytest
 
 from app.schemas.market_data import MarketDataset
 from app.services.data_normalization_service import DataValidationError, normalize_ohlcv
-from app.services.market_data_service import MarketDataService, generate_mock_ohlcv
+from app.services.market_data_service import (
+    MarketDataService,
+    _build_params,
+    _map_qveris_rows,
+    generate_mock_ohlcv,
+)
 from app.services.qveris_client import QverisClient, QverisNotConfiguredError
 
 
@@ -23,9 +28,11 @@ class TestQverisClient:
     def test_missing_key_raises_on_real_calls(self):
         client = QverisClient(api_key="")
         with pytest.raises(QverisNotConfiguredError):
-            client.discover()
+            client.discover("stock price")
         with pytest.raises(QverisNotConfiguredError):
-            client.call("market_data.ohlcv", {})
+            client.inspect(["some.tool"])
+        with pytest.raises(QverisNotConfiguredError):
+            client.call("some.tool", {})
 
     def test_status_reports_mock_fallback_when_unconfigured(self):
         status = QverisClient(api_key="").status()
@@ -52,6 +59,55 @@ class TestMockFallback:
         a = generate_mock_ohlcv("AAPL", "1d", "2024-01-01", "2024-02-01")
         b = generate_mock_ohlcv("MSFT", "1d", "2024-01-01", "2024-02-01")
         assert a != b
+
+
+class TestQverisResponseMapping:
+    """Map real-provider payload shapes (Tiingo / FMP / EODHD) to OHLCV rows."""
+
+    def test_maps_fmp_style_list(self):
+        data = [
+            {"symbol": "AAPL", "date": "2024-01-12", "open": 186.06, "high": 186.74, "low": 185.19, "close": 185.92, "volume": 40477800},
+            {"symbol": "AAPL", "date": "2024-01-11", "open": 186.54, "high": 187.05, "low": 183.62, "close": 185.59, "volume": 49128408},
+        ]
+        rows = _map_qveris_rows(data)
+        assert len(rows) == 2
+        bars = normalize_ohlcv(rows)
+        assert bars[0].timestamp < bars[1].timestamp
+        assert bars[1].close == 185.92
+
+    def test_maps_tiingo_style_adjusted_fields(self):
+        data = [{"date": "2024-01-10T00:00:00+00:00", "adjOpen": 100.0, "adjHigh": 102.0, "adjLow": 99.0, "adjClose": 101.0, "adjVolume": 12345}]
+        rows = _map_qveris_rows(data)
+        assert rows[0]["open"] == 100.0 and rows[0]["close"] == 101.0
+
+    def test_unwraps_dict_wrapped_series(self):
+        data = {"results": [{"t": "2024-01-10", "o": 1.0, "h": 2.0, "l": 0.5, "c": 1.5, "v": 10}]}
+        rows = _map_qveris_rows(data)
+        assert len(rows) == 1 and rows[0]["high"] == 2.0
+
+    def test_skips_rows_missing_ohlc(self):
+        data = [{"date": "2024-01-10", "open": 1.0}]  # missing high/low/close
+        assert _map_qveris_rows(data) == []
+
+
+class TestParamBuilding:
+    def test_maps_symbol_and_date_range_aliases(self):
+        p = _build_params(["ticker", "startDate", "endDate"], "AAPL", "2024-01-01", "2024-02-01", "1d")
+        assert p == {"ticker": "AAPL", "startDate": "2024-01-01", "endDate": "2024-02-01"}
+
+    def test_fmp_from_to_aliases(self):
+        p = _build_params(["symbol", "from", "to"], "MSFT", "2024-01-01", "2024-02-01", "1d")
+        assert p["symbol"] == "MSFT" and p["from"] == "2024-01-01" and p["to"] == "2024-02-01"
+
+    def test_interval_only_for_intraday(self):
+        daily = _build_params(["symbol", "interval"], "AAPL", "2024-01-01", "2024-02-01", "1d")
+        assert "interval" not in daily
+        intraday = _build_params(["symbol", "interval"], "AAPL", "2024-01-01", "2024-02-01", "15m")
+        assert intraday["interval"] == "15m"
+
+    def test_falls_back_to_symbol_when_no_known_key(self):
+        p = _build_params([], "AAPL", "2024-01-01", "2024-02-01", "1d")
+        assert p["symbol"] == "AAPL"
 
 
 class TestNormalization:

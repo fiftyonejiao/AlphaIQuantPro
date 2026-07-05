@@ -50,6 +50,13 @@ def qveris_sources():
     if not client.is_configured:
         return {"configured": False, "capabilities": [], "message": "QVERIS_API_KEY missing — mock fallback active"}
     try:
-        return {"configured": True, "capabilities": [c.model_dump() for c in client.discover()]}
+        from ..services.market_data_service import OHLCV_QUERY
+
+        discovery = client.discover(OHLCV_QUERY, limit=10)
+        return {
+            "configured": True,
+            "search_id": discovery.search_id,
+            "capabilities": [c.model_dump() for c in discovery.capabilities],
+        }
     except Exception as exc:  # noqa: BLE001
         return {"configured": True, "capabilities": [], "message": f"discover failed: {type(exc).__name__}"}
