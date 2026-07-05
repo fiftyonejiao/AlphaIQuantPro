@@ -1,0 +1,29 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - QVERIS_API_KEY=${QVERIS_API_KEY:-}
+      - QVERIS_BASE_URL=${QVERIS_BASE_URL:-https://qveris.ai/api/v1}
+      - QVERIS_SESSION_ID=${QVERIS_SESSION_ID:-alphaquantpro-local}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - DEEPSEEK_BASE_URL=${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
+      - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-chat}
+      - DATABASE_URL=sqlite:////data/alphaquantpro.db
+    volumes:
+      - aqp-data:/data
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  aqp-data:
